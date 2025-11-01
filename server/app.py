@@ -3,7 +3,7 @@
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
-ALLOWED_FIELDS = {"name", "image", "price", "is_in_stock"}  # ce qu'on accepte de modifier
+ALLOWED_FIELDS = {"name", "image", "price", "is_in_stock"}
 from models import db, Plant
 from flask_restful import Resource, abort
 
@@ -53,15 +53,13 @@ class PlantByID(Resource):
         if not plant:
             abort(404, message=f"Plant {id} not found")
 
-        data = request.get_json(silent=False)   # <- JSON obligatoire (Content-Type: application/json)
+        data = request.get_json(silent=False) 
         if not isinstance(data, dict):
             return {"error": "JSON object required"}, 400
 
         for key, value in data.items():
             if key not in ALLOWED_FIELDS:
-                continue  # ignore tout champ non autorisé
-
-            # coercitions simples par type/champ
+                continue 
             if key == "price" and value is not None:
                 try:
                     value = float(value)
@@ -69,7 +67,6 @@ class PlantByID(Resource):
                     return {"error": "price must be a number"}, 400
 
             if key == "is_in_stock":
-                # accepter true/false, "true"/"false", 1/0
                 if isinstance(value, str):
                     value = value.strip().lower() in {"true", "1", "yes", "y"}
                 else:
@@ -77,7 +74,7 @@ class PlantByID(Resource):
 
             setattr(plant, key, value)
 
-        db.session.commit()  # pas besoin de db.session.add pour un objet déjà suivi
+        db.session.commit()  
         return plant.to_dict(), 200
 
     def delete(self, id):
